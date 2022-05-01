@@ -7,13 +7,13 @@ module.exports = async (email, message, title) => {
 
     const port = 465;
 
-    const senderAddress = `${config.NAME} <${config.EMAIL_ADDRESS}>`;
+    const senderAddress = config.USERNAME;
 
     var toAddress = email;
 
-    const smtpUsername = config.SENDGRID_USERNAME;
+    const smtpUsername = config.USERNAME;
 
-    const smtpPassword = config.SENDGRID_PASSWORD;
+    const smtpPassword = config.PASSWORD;
 
     var subject = title;
 

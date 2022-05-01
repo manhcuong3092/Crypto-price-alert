@@ -1,2 +1,2 @@
-require("./removeExpired");
+// require("./removeExpired");
 require("./sendAlert");
