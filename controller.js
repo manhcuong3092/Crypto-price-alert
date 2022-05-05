@@ -28,10 +28,24 @@ exports.CreateAlert = async (req, res) => {
             });
 
         asset = asset.toUpperCase()
-        if(coins.indexOf(symbol) === -1) {
+        if(coins.indexOf(asset) === -1) {
             return res.status(400).json({
                 error: true,
                 message: "This coin doesn't exist.",
+            });
+        }
+
+        if(isNaN(price)) {
+            return res.status(400).json({
+                error: true,
+                message: "Invalid price",
+            });
+        }
+        price = parseFloat(price);
+        if(price <= 0) {
+            return res.status(400).json({
+                error: true,
+                message: "Invalid price",
             });
         }
 
