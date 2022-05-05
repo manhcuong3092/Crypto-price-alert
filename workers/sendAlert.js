@@ -25,24 +25,21 @@ alertQueue.process(async function (job, done) {   //Consumer process
 
 var sendAlert = new CronJob("*/5 * * * * *",   // Execute every 5 seconds
     async function () {
-        const currentPrices = await currentPrice();
-        if (currentPrices.error) return;
-
-        let priceObj = {
-            BTC: currentPrices.data.BTC,
-            ETH: currentPrices.data.ETH,
-        };
-        console.log("BTC:", currentPrices.data.BTC)
+        const priceObj = await currentPrice();
+        if (priceObj.error) return;
+        const pairs = priceObj.data;
+        console.log(priceObj)
+        console.log("BTC:", priceObj.data.BTC)
         console.log(alerts)
 
         alerts.forEach((alert, index) => {
             let message, title, recipient;
             if (
                 alert.type == "above" &&
-                parseFloat(alert.price) <= parseFloat(priceObj[alert.asset])
+                parseFloat(alert.price) <= parseFloat(pairs[alert.asset])
             ) {
                 message = `Price of ${alert.asset} has just exceeded your alert price of ${alert.price} USD.
-      Current price is ${priceObj[alert.asset]} USD.`;
+      Current price is ${pairs[alert.asset]} USD.`;
                 title = `${alert.asset} is up!`;
                 recipient = alert.email;
 
@@ -59,10 +56,10 @@ var sendAlert = new CronJob("*/5 * * * * *",   // Execute every 5 seconds
 
             } else if (
                 alert.type == "below" &&
-                parseFloat(alert.price) > parseFloat(priceObj[alert.asset])
+                parseFloat(alert.price) > parseFloat(pairs[alert.asset])
             ) {
                 message = `Price of ${alert.asset} fell below your alert price of ${alert.price}.
-      Current price is ${priceObj[alert.asset]} USD.`;
+      Current price is ${pairs[alert.asset]} USD.`;
 
                 recipient = alert.email;
                 title = `${alert.asset} is down!`;
