@@ -1,4 +1,6 @@
 const express = require("express");
+var alerts = require("./alerts");
+var coins = require("./coin");
 
 const router = express.Router();
 
@@ -6,7 +8,7 @@ const Controller = require("./controller");
 
 /* GET home page. */
 router.get('/', function (req, res, next) {
-  res.render('index', { title: 'Thông báo biến động giá.' });
+  res.render('index', { coins, alerts, title: 'Thông báo biến động giá.' });
 });
 
 router.post("/priceAlert", Controller.CreateAlert);

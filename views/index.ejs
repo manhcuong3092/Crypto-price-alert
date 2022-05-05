@@ -8,15 +8,24 @@
     <!-- JavaScript Bundle with Popper -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-ka7Sk0Gln4gmtz2MlQnikT1wXgYsOg+OMhuP+IlRH9sENBO0LRn5q+8nbTov4+1p" crossorigin="anonymous"></script>
     <script src="https://code.jquery.com/jquery-3.6.0.slim.min.js" integrity="sha256-u7e5khyithlIdTpu22PHhENmPcRdFiHRjhAuHcs05RI=" crossorigin="anonymous"></script>
+    <!-- Latest BS-Select compiled and minified CSS/JS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-select@1.14.0-beta2/dist/css/bootstrap-select.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap-select@1.14.0-beta2/dist/js/bootstrap-select.min.js"></script>
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
   </head>
   <body>
     <h1><%= title %></h1>
     <h5>Nhập thông tin</h5>
-    <form action="/priceAlert" method="post">
+    <form action="/priceAlert" method="post" onsubmit="">
       <div class="mb-3">
         <label for="" class="form-label">Ký hiệu</label>
-        <input type="text" class="form-control" name="asset" id="" placeholder="BTC">
+        <select class="selectpicker form-control" id="asset" name="asset" data-live-search="true">
+          <% coins.forEach((coin) => { %>
+            <option value="<%= coin %>"><%= coin %></option>
+          <% }); %>
+        </select>
       </div>
+      <small id="current-price"></small>
       <p>Điều kiện nhận thông báo</p>
       <div class="form-check">
         <input class="form-check-input" type="radio" name="type" id="above" value="above">
@@ -32,7 +41,7 @@
       </div>
       <div class="mb-3">
         <label for="" class="form-label">Giá</label>
-        <input type="text" class="form-control" name="price" id="" placeholder="45000">
+        <input type="text" class="form-control" name="price" id="" placeholder="">
       </div>
       <div class="mb-3">
         <label for="" class="form-label">Email nhận thông báo</label>
@@ -40,5 +49,74 @@
       </div>
       <button class="btn btn-primary" type="submit">Nhận</button>
     </form>
+    <h2 class="mt-4">Danh sách nhận thông báo</h2>
+    <div class="container-fluid" id="alerts" style="margin-top: 15px;">
+      <table class="table">
+        <thead>
+          <tr>
+            <th scope="col">STT</th>
+            <th scope="col">Ký hiệu</th>
+            <th scope="col">Điều kiện</th>
+            <th scope="col">Mức giá</th>
+            <th scope="col">Email</th>
+            <th scope="col">Ngày tạo</th>
+          </tr>
+        </thead>
+        <tbody id="alert-list">
+          <% alerts.forEach((alert, index) => { %>
+            <tr>
+              <th scope="row"><%= index + 1 %></th>
+              <td><%= alert.asset %></td>
+              <td><%= alert.type === 'above' ? 'Cao hơn' : 'Thấp hơn' %></td>
+              <td><%= parseFloat(alert.price) %></td>
+              <td><%= alert.email %></td>
+              <td><%= alert.createdAt.toISOString().substring(0, 10) + ' ' + alert.createdAt.toISOString().substring(11, 19) %></td>
+            </tr>
+          <% }); %>
+          
+        </tbody>
+      </table>
+    </div>
   </body>
+  <script>
+    $(function () {
+      $('.asset').selectpicker();
+    });
+
+    $(document).ready(async () => {
+      var symbol = $('#asset').val();
+      var result = await axios.get(`http://localhost:5000/coin/${symbol}`);
+      $('#current-price').text(`Current ${symbol} price is ${ parseFloat(result.data.price) }$`);
+    })
+
+    setInterval(async () => {
+      var result = await axios.get("http://localhost:5000/alerts");
+      if(result) {
+        var append = "";
+        result.data.alerts.map((alert, index) => {
+          alert.createdAt = alert.createdAt.substring(0, 10) + ' ' + alert.createdAt.substring(11, 19);
+          append += `
+            <tr>
+              <th scope="row">${index + 1 }</th>
+              <td>${alert.asset}</td>
+              <td>${alert.type === 'above' ? 'Cao hơn' : 'Thấp hơn'}</td>
+              <td>${parseFloat(alert.price)}</td>
+              <td>${alert.email}</td>
+              <td>${alert.createdAt}</td>
+            </tr>        
+          `
+        });
+
+        $('#alert-list').empty();
+        $('#alert-list').append(append);
+      }
+    }, 5000);
+
+    $('#asset').change(async () => {
+      var symbol = $('#asset').val();
+      var result = await axios.get(`http://localhost:5000/coin/${symbol}`);
+      $('#current-price').text(`Current ${symbol} price is ${ parseFloat(result.data.price) }$`);
+    });
+    
+  </script>
 </html>
